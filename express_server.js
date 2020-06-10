@@ -20,8 +20,7 @@ let templateVars = {
 };
 
 app.post("/login", (req, res) => {
-  res.cookie('username', req.body["username"]);
-  templateVars['username'] = req.body["username"];
+  res.cookie('username', req.body["username"]);  
   res.redirect('/urls');
   });
 
@@ -32,10 +31,12 @@ app.post("/login", (req, res) => {
   });
 
   app.get("/urls", (req, res) => {
+    templateVars['username'] = req.cookies["username"];
     res.render("urls_index", templateVars);
   });
 
   app.get("/urls/new", (req, res) => {
+    
     res.render("urls_new", templateVars); 
 });
 
