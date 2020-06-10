@@ -6,9 +6,33 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav">
-        <a class="nav-item nav-link" href="/urls">My URLs</a>
-        <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+        <a id="demo" class="nav-item nav-link" href="/urls">My URLs</a>
+        <a  class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
     </div>
+
+  
+    <% if(username) {%>
+      <div class="">
+        <form class="form-inline" action="/logout" method="POST">
+          <label id="labelText"  for="lo"> <%= username%> </label> 
+          <button   type="Logout" class="btn btn-primary">Logout</button>
+        </form>
+       </div>     
+      <%} else { %>
+        <div class="">
+         <form class="form-inline" action="/login" method="POST">
+           <input id= "cookieInputText" class="form-control" type="text" name="username" placeholder="User Name" style="width: 300px; margin:  1em">
+           <button   type="Login" class="btn btn-primary">Login</button> 
+         </form>
+        </div>
+      <%}%>
+       
+        
+          
+   
+
+
   </nav>
 </header>
+
