@@ -2,14 +2,12 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const generateRandomString = require("./generateRandomString");
+
+
+// Varaiables are deifined here
 const app = express();
 const PORT = 8080; // default port 8080
 
-app.use(cookieParser());
-app.set("view engine", "ejs");
-app.use(bodyParser.urlencoded({extended: true}));
-
-// Varaiables are deifined here
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -20,9 +18,40 @@ let templateVars = {
   username: ""
 };
 
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
+// middleware
+app.use(cookieParser());
+app.set("view engine", "ejs");
+app.use(bodyParser.urlencoded({extended: true}));
+
+
+// Here are all page
+app.post("/register", (req, res) => {
+  const id = generateRandomString();
+  users[id] = {
+    id,
+    email: req.body["email"],
+    password: req.body["password"]
+  };
+  res.cookie('user_id', id);  
+  res.redirect("/urls")
+});
+
 app.get("/register", (req, res) => {
   res.render("register", templateVars)
 });
+
 
 
 
@@ -39,9 +68,14 @@ app.post("/login", (req, res) => {
 
   app.get("/urls", (req, res) => {
     templateVars['username'] = req.cookies["username"];
+    templateVars["users"] = users;
+    console.log(templateVars["users"][req.cookies["user_id"]]);
     res.render("urls_index", templateVars);
   });
 
+
+
+  
   app.get("/urls/new", (req, res) => {
     
     res.render("urls_new", templateVars); 
