@@ -29,7 +29,7 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${key}`);
 });
 
-
+//edit button in creat new url page
 app.post("/urls/:id", (req, res) => {
   // console.log("urlDatabase", urlDatabase);
   urlDatabase[req.params.id] = `http://${req.body['NewlongURL']}`
@@ -37,7 +37,10 @@ app.post("/urls/:id", (req, res) => {
   res.redirect('/urls');
 });
 
-
+// Edit button in list page
+app.post("/urls/:shortURL/edit", (req, res) => {
+  res.redirect(`/urls/${req.params.shortURL}`);
+});
 
 
 // Delete button
