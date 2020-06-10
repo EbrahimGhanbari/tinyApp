@@ -15,7 +15,6 @@ const urlDatabase = {
 
 let templateVars = {
   urls: urlDatabase,
-  username: ""
 };
 
 const users = { 
@@ -39,6 +38,17 @@ app.use(bodyParser.urlencoded({extended: true}));
 // Here are all page
 app.post("/register", (req, res) => {
   const id = generateRandomString();
+
+  if (!req.body["email"] && !req.body["password"]) {
+    return res.status(400).send('Invalid email and/or passwords');
+  }
+
+  for (let user in users) {
+    if (req.body["email"] === users[user].email) {
+      return res.status(400).send('User already exists');
+    };
+  }
+
   users[id] = {
     id,
     email: req.body["email"],
@@ -61,21 +71,20 @@ app.post("/login", (req, res) => {
   });
 
   app.post("/logout", (req, res) => {
-    res.clearCookie('username', templateVars['username'])
-    templateVars['username'] = "";
+    // res.clearCookie('username', templateVars['username'])
+    // templateVars['username'] = "";
     res.redirect('/urls');
   });
 
   app.get("/urls", (req, res) => {
-    templateVars['username'] = req.cookies["username"];
-    templateVars["users"] = users;
-    console.log(templateVars["users"][req.cookies["user_id"]]);
+    templateVars["user"] = users[req.cookies["user_id"]];
+    console.log(users);
     res.render("urls_index", templateVars);
   });
 
 
 
-  
+
   app.get("/urls/new", (req, res) => {
     
     res.render("urls_new", templateVars); 
@@ -120,3 +129,6 @@ app.get("/u/:shortURL", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);  
 });
+
+
+
