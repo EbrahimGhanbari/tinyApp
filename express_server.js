@@ -9,7 +9,6 @@ app.use(cookieParser());
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
 
-
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -21,28 +20,23 @@ let templateVars = {
 };
 
 app.post("/login", (req, res) => {
-  templateVars['username'] = "";
-  res.cookie('username', req.body.username);
-  templateVars['username'] = req.cookies["username"];
+  res.cookie('username', req.body["username"]);
+  templateVars['username'] = req.body["username"];
   res.redirect('/urls');
+  });
 
-});
+  app.post("/logout", (req, res) => {
+    res.clearCookie('username', templateVars['username'])
+    templateVars['username'] = "";
+    res.redirect('/urls');
+  });
 
-app.post("/logout", (req, res) => {
-  res.clearCookie('username', templateVars['username'])
-  templateVars['username'] = "";
-  res.redirect('/urls');
+  app.get("/urls", (req, res) => {
+    res.render("urls_index", templateVars);
+  });
 
-});
-
-
-app.get("/urls", (req, res) => {
-
-  res.render("urls_index", templateVars);
-});
-
-app.get("/urls/new", (req, res) => {
-  res.render("urls_new", templateVars); 
+  app.get("/urls/new", (req, res) => {
+    res.render("urls_new", templateVars); 
 });
 
 // Add random charactars for each websit
@@ -55,7 +49,6 @@ app.post("/urls", (req, res) => {
 
 //edit button in creat new url page
 app.post("/urls/:id", (req, res) => {
-  // console.log("urlDatabase", urlDatabase);
   urlDatabase[req.params.id] = `http://${req.body['NewlongURL']}`
   console.log(urlDatabase[req.params.id])
   res.redirect('/urls');
@@ -70,7 +63,6 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect('/urls');
-
 });
 
 app.get("/urls/:shortURL", (req, res) => {
