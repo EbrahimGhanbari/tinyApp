@@ -9,6 +9,7 @@ app.use(cookieParser());
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
 
+// Varaiables are deifined here
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -18,6 +19,12 @@ let templateVars = {
   urls: urlDatabase,
   username: ""
 };
+
+app.get("/register", (req, res) => {
+  res.render("register", templateVars)
+});
+
+
 
 app.post("/login", (req, res) => {
   res.cookie('username', req.body["username"]);  
