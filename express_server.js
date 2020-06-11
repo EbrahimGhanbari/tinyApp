@@ -64,6 +64,13 @@ const urlsForUser = (id) => {
   return urlUserDatabse;
 };
 
+
+app.get("/urls", (req, res) => {
+  templateVars["user"] = users[req.cookies["user_id"]];
+  res.render("urls_index", templateVars);
+  
+});
+
 // Here are all page
 app.post("/register", (req, res) => {
   const id = generateRandomString();
@@ -126,11 +133,7 @@ app.post("/logout", (req, res) => {
   res.clearCookie('user_id');
   res.redirect('/urls');
 });
-app.get("/urls", (req, res) => {
-  templateVars["user"] = users[req.cookies["user_id"]];
-  res.render("urls_index", templateVars);
-  
-});
+
 
 
 app.get("/urls/new", (req, res) => {
