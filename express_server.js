@@ -12,6 +12,11 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+// const urlDatabase = {
+//   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+//   i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
+// };
+
 let templateVars = {
   urls: urlDatabase,
 };
@@ -86,8 +91,6 @@ app.post("/login", (req, res) => {
     res.clearCookie('user_id');
     res.cookie('user_id', id); 
     res.redirect("/urls");
- 
-
   } else {
     return res.status(400).send('User or password is wrong!');
   }
@@ -98,24 +101,27 @@ app.post("/login", (req, res) => {
 app.post("/regShortcut", (req, res) => {
   // res.cookie('username', req.body["username"]);  
   res.redirect('/register');
-  });
+});
 
 app.post("/loginShortcut", (req, res) => {
   res.redirect('/login');
-  });
-
-  app.post("/logout", (req, res) => {
-    res.clearCookie('user_id');
-    res.redirect('/urls');
-  });
-
-  app.get("/urls", (req, res) => {
-    templateVars["user"] = users[req.cookies["user_id"]];
-    res.render("urls_index", templateVars);
-  });
+});
+app.post("/logout", (req, res) => {
+  res.clearCookie('user_id');
+  res.redirect('/urls');
+});
+app.get("/urls", (req, res) => {
+  templateVars["user"] = users[req.cookies["user_id"]];
+  res.render("urls_index", templateVars);
+});
 
 
 app.get("/urls/new", (req, res) => {
+  // 
+  if (!users[req.cookies["user_id"]]) {
+    return res.redirect("/login");
+  }
+  templateVars["user"] = users[req.cookies["user_id"]];
   res.render("urls_new", templateVars); 
 });
 
@@ -160,6 +166,3 @@ app.get("/u/:shortURL", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);  
 });
-
-
-
