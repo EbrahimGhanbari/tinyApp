@@ -7,18 +7,13 @@ const generateRandomString = require("./generateRandomString");
 const app = express();
 const PORT = 8080; // default port 8080
 
-// const urlDatabase = {
-//   "b2xVn2": "http://www.lighthouselabs.ca",
-//   "9sm5xK": "http://www.google.com"
-// };
-
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
 
 let templateVars = {
-  urls: urlDatabase,
+  // urls: urlDatabase,
 };
 
 const users = { 
@@ -56,7 +51,8 @@ const urlsForUser = (id) => {
     if (urlDatabase[shortUrl].userID === id) {
       
       urlUserDatabse[shortUrl] = {
-        shortURL: {longURL: urlDatabase[shortUrl].longURL, userID: id}
+        longURL: urlDatabase[shortUrl].longURL, 
+        userID: id
       };
 
     }
@@ -66,9 +62,14 @@ const urlsForUser = (id) => {
 
 
 app.get("/urls", (req, res) => {
+  templateVars = {
+    urls: urlsForUser(req.cookies["user_id"])
+  };
+  if (!req.cookies["user_id"]) {
+    return res.redirect("/urls/req");
+  }
   templateVars["user"] = users[req.cookies["user_id"]];
   res.render("urls_index", templateVars);
-  
 });
 
 // Here are all page
@@ -145,6 +146,11 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars); 
 });
 
+
+
+
+
+
 // Add random charactars for each websit
 app.post("/urls", (req, res) => {
   let key = generateRandomString();
@@ -155,30 +161,63 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${key}`);
 });
 
+app.get("/urls/req", (req, res) => {
+  templateVars["user"] = users[req.cookies["user_id"]];
+  res.render("urls_logreq", templateVars); 
+});
 
 // All the dynamic pages are here
 //edit button in creat new url page
 app.post("/urls/:id", (req, res) => {
-  urlDatabase[req.params.id].longURL = `http://${req.body['NewlongURL']}`
-  res.redirect('/urls');
+  
+  if (req.cookies["user_id"] === urlDatabase[req.params.id].userID) {
+    urlDatabase[req.params.id].longURL = `http://${req.body['NewlongURL']}`
+    res.redirect('/urls');
+  } else {
+    return res.status(405).send('You are not the owner of this URL');
+  }
+
+// uncomment these if you want to revert back
+  // urlDatabase[req.params.id].longURL = `http://${req.body['NewlongURL']}`
+  // res.redirect('/urls');
 });
 
 // Edit button in list page
 app.post("/urls/:shortURL/edit", (req, res) => {
-  res.redirect(`/urls/${req.params.shortURL}`);
+
+  if (req.cookies["user_id"] === urlDatabase[req.params.shortURL].userID) {
+    res.redirect(`/urls/${req.params.shortURL}`);
+  } else {
+    return res.status(405).send('You are not the owner of this URL');
+  }
+  
 });
 
 // Delete button
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect('/urls');
+  if (req.cookies["user_id"] === urlDatabase[req.params.shortURL].userID) {
+    delete urlDatabase[req.params.shortURL];
+    res.redirect('/urls');
+  } else {
+    return res.status(405).send('You are not the owner of this URL');
+  }
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL };
-  templateVars["user"] = users[req.cookies["user_id"]];
 
-  res.render("urls_show", templateVars);
+  if (!urlDatabase[req.params.shortURL]) {
+    return res.status(404).send('Shorted website is not valid');
+  }
+
+  if (req.cookies["user_id"] === urlDatabase[req.params.shortURL].userID) {
+    
+    let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL };
+    templateVars["user"] = users[req.cookies["user_id"]];
+    res.render("urls_show", templateVars);
+  } else {
+    return res.status(405).send('OOPS seems like you are not the owner!');
+  }
+  
 });
 
 app.get("/u/:shortURL", (req, res) => {
