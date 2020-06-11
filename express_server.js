@@ -7,23 +7,23 @@ const generateRandomString = require("./generateRandomString");
 const app = express();
 const PORT = 8080; // default port 8080
 
-const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-};
-
 // const urlDatabase = {
-//   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
-//   i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
+//   "b2xVn2": "http://www.lighthouselabs.ca",
+//   "9sm5xK": "http://www.google.com"
 // };
+
+const urlDatabase = {
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
+};
 
 let templateVars = {
   urls: urlDatabase,
 };
 
 const users = { 
-  "userRandomID": {
-    id: "userRandomID", 
+  "aJ48lW": {
+    id: "aJ48lW", 
     email: "user@example.com", 
     password: "purple-monkey-dinosaur"
   },
@@ -47,6 +47,22 @@ const userFinder = (email) => {
   }
   return false;
 }
+
+//this funcation has to be checked
+const urlsForUser = (id) => {
+  const urlUserDatabse = {};
+
+  for (let shortUrl in urlDatabase) {
+    if (urlDatabase[shortUrl].userID === id) {
+      
+      urlUserDatabse[shortUrl] = {
+        shortURL: {longURL: urlDatabase[shortUrl].longURL, userID: id}
+      };
+
+    }
+  }
+  return urlUserDatabse;
+};
 
 // Here are all page
 app.post("/register", (req, res) => {
@@ -113,6 +129,7 @@ app.post("/logout", (req, res) => {
 app.get("/urls", (req, res) => {
   templateVars["user"] = users[req.cookies["user_id"]];
   res.render("urls_index", templateVars);
+  
 });
 
 
@@ -128,7 +145,10 @@ app.get("/urls/new", (req, res) => {
 // Add random charactars for each websit
 app.post("/urls", (req, res) => {
   let key = generateRandomString();
-  urlDatabase[key]= `http://${req.body['longURL']}`;
+  urlDatabase[key]={
+    longURL: `http://${req.body['longURL']}`,
+    userID: req.cookies["user_id"] 
+  };
   res.redirect(`/urls/${key}`);
 });
 
@@ -136,7 +156,7 @@ app.post("/urls", (req, res) => {
 // All the dynamic pages are here
 //edit button in creat new url page
 app.post("/urls/:id", (req, res) => {
-  urlDatabase[req.params.id] = `http://${req.body['NewlongURL']}`
+  urlDatabase[req.params.id].longURL = `http://${req.body['NewlongURL']}`
   res.redirect('/urls');
 });
 
@@ -152,14 +172,14 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL };
   templateVars["user"] = users[req.cookies["user_id"]];
 
   res.render("urls_show", templateVars);
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
 
