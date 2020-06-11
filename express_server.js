@@ -26,7 +26,7 @@ const users = {
  "user2RandomID": {
     id: "user2RandomID", 
     email: "user2@example.com", 
-    password: "dishwasher-funk"
+    password: "funk"
   }
 }
 // middleware
@@ -34,6 +34,15 @@ app.use(cookieParser());
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
 
+// functions: This part will be moved to another file later
+const userFinder = (email) => { 
+  for (let user in users) {
+    if (email === users[user].email) {
+      return user;
+    }
+  }
+  return false;
+}
 
 // Here are all page
 app.post("/register", (req, res) => {
@@ -43,11 +52,10 @@ app.post("/register", (req, res) => {
     return res.status(400).send('Invalid email and/or passwords');
   }
 
-  for (let user in users) {
-    if (req.body["email"] === users[user].email) {
-      return res.status(400).send('User already exists');
-    };
+  if (userFinder(req.body["email"])) {
+    return res.status(400).send('User already exists');
   }
+
 
   users[id] = {
     id,
@@ -59,49 +67,70 @@ app.post("/register", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
+  templateVars["user"] = users[req.cookies["user_id"]];
   res.render("register", templateVars)
 });
 
-
-
+app.get("/login", (req, res) => {
+  templateVars["user"] = users[req.cookies["user_id"]];
+  res.render("loginForm", templateVars)
+});
 
 app.post("/login", (req, res) => {
-  res.cookie('username', req.body["username"]);  
-  res.redirect('/urls');
+
+  const email = req.body.email;
+  const pass = req.body.password;
+  const id = userFinder(email);
+  
+  if (id && pass === users[id].password) {
+    res.clearCookie('user_id');
+    res.cookie('user_id', id); 
+    res.redirect("/urls");
+ 
+
+  } else {
+    return res.status(400).send('User or password is wrong!');
+  }
+
+})
+
+
+app.post("/regShortcut", (req, res) => {
+  // res.cookie('username', req.body["username"]);  
+  res.redirect('/register');
+  });
+
+app.post("/loginShortcut", (req, res) => {
+  res.redirect('/login');
   });
 
   app.post("/logout", (req, res) => {
-    // res.clearCookie('username', templateVars['username'])
-    // templateVars['username'] = "";
+    res.clearCookie('user_id');
     res.redirect('/urls');
   });
 
   app.get("/urls", (req, res) => {
     templateVars["user"] = users[req.cookies["user_id"]];
-    console.log(users);
     res.render("urls_index", templateVars);
   });
 
 
-
-
-  app.get("/urls/new", (req, res) => {
-    
-    res.render("urls_new", templateVars); 
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new", templateVars); 
 });
 
 // Add random charactars for each websit
 app.post("/urls", (req, res) => {
   let key = generateRandomString();
   urlDatabase[key]= `http://${req.body['longURL']}`;
-  console.log(urlDatabase);
   res.redirect(`/urls/${key}`);
 });
 
+
+// All the dynamic pages are here
 //edit button in creat new url page
 app.post("/urls/:id", (req, res) => {
   urlDatabase[req.params.id] = `http://${req.body['NewlongURL']}`
-  console.log(urlDatabase[req.params.id])
   res.redirect('/urls');
 });
 
