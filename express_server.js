@@ -3,7 +3,6 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const generateRandomString = require("./generateRandomString");
 
-
 // Varaiables are deifined here
 const app = express();
 const PORT = 8080; // default port 8080
@@ -47,20 +46,21 @@ const userFinder = (email) => {
 // Here are all page
 app.post("/register", (req, res) => {
   const id = generateRandomString();
-
-  if (!req.body["email"] && !req.body["password"]) {
+  const email = req.body["email"];
+  const pass = req.body["password"];
+ 
+  if (!email && !pass) {
     return res.status(400).send('Invalid email and/or passwords');
   }
 
-  if (userFinder(req.body["email"])) {
+  if (userFinder(email)) {
     return res.status(400).send('User already exists');
   }
 
-
   users[id] = {
     id,
-    email: req.body["email"],
-    password: req.body["password"]
+    email: email,
+    password: pass
   };
   res.cookie('user_id', id);  
   res.redirect("/urls")
@@ -147,6 +147,8 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  templateVars["user"] = users[req.cookies["user_id"]];
+
   res.render("urls_show", templateVars);
 });
 
