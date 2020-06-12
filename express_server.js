@@ -40,18 +40,6 @@ app.use(cookieSession({
     'anotherlongone']
 }));
 
-// Test
-app.get("/test", (req, res) => {
-  req.session.user_id = 'UVT32H'; 
-  console.log("req.session.", req.session)
-  const username = req.session.user_id;
-  console.log(username);
-  req.session.user_id = null;
-  res.render("test");
-
-});
-
-
 
 // ****All static post are hear *****
 // This post handles the registration
