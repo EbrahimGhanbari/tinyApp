@@ -1,7 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
-const generateRandomString = require("./generateRandomString");
+const {generateRandomString, userFinder, urlsForUser} = require("./functions");
 
 // Varaiables are deifined here
 const app = express();
@@ -33,46 +33,11 @@ app.use(cookieParser());
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
 
-// functions: This part will be moved to another file later
-const userFinder = (email) => { 
-  for (let user in users) {
-    if (email === users[user].email) {
-      return user;
-    }
-  }
-  return false;
-}
-
-//this funcation has to be checked
-const urlsForUser = (id) => {
-  const urlUserDatabse = {};
-
-  for (let shortUrl in urlDatabase) {
-    if (urlDatabase[shortUrl].userID === id) {
-      
-      urlUserDatabse[shortUrl] = {
-        longURL: urlDatabase[shortUrl].longURL, 
-        userID: id
-      };
-
-    }
-  }
-  return urlUserDatabse;
-};
 
 
-app.get("/urls", (req, res) => {
-  templateVars = {
-    urls: urlsForUser(req.cookies["user_id"])
-  };
-  if (!req.cookies["user_id"]) {
-    return res.redirect("/urls/req");
-  }
-  templateVars["user"] = users[req.cookies["user_id"]];
-  res.render("urls_index", templateVars);
-});
 
-// Here are all page
+// ****All static post are hear *****
+// This post handles the registration
 app.post("/register", (req, res) => {
   const id = generateRandomString();
   const email = req.body["email"];
@@ -82,7 +47,7 @@ app.post("/register", (req, res) => {
     return res.status(400).send('Invalid email and/or passwords');
   }
 
-  if (userFinder(email)) {
+  if (userFinder(email, users)) {
     return res.status(400).send('User already exists');
   }
 
@@ -95,21 +60,12 @@ app.post("/register", (req, res) => {
   res.redirect("/urls")
 });
 
-app.get("/register", (req, res) => {
-  templateVars["user"] = users[req.cookies["user_id"]];
-  res.render("register", templateVars)
-});
-
-app.get("/login", (req, res) => {
-  templateVars["user"] = users[req.cookies["user_id"]];
-  res.render("loginForm", templateVars)
-});
-
+// This post handles the login request
 app.post("/login", (req, res) => {
 
   const email = req.body.email;
   const pass = req.body.password;
-  const id = userFinder(email);
+  const id = userFinder(email, users);
   
   if (id && pass === users[id].password) {
     res.clearCookie('user_id');
@@ -121,37 +77,23 @@ app.post("/login", (req, res) => {
 
 })
 
-
+//this post handle the register button in header
 app.post("/regShortcut", (req, res) => {
-  // res.cookie('username', req.body["username"]);  
   res.redirect('/register');
 });
 
+//this post handle the login button in header
 app.post("/loginShortcut", (req, res) => {
   res.redirect('/login');
 });
+
+//this post handle the logout button in header
 app.post("/logout", (req, res) => {
   res.clearCookie('user_id');
   res.redirect('/urls');
 });
 
-
-
-app.get("/urls/new", (req, res) => {
-  // 
-  if (!users[req.cookies["user_id"]]) {
-    return res.redirect("/login");
-  }
-  templateVars["user"] = users[req.cookies["user_id"]];
-  res.render("urls_new", templateVars); 
-});
-
-
-
-
-
-
-// Add random charactars for each websit
+// this post handle adding new website
 app.post("/urls", (req, res) => {
   let key = generateRandomString();
   urlDatabase[key]={
@@ -165,6 +107,44 @@ app.get("/urls/req", (req, res) => {
   templateVars["user"] = users[req.cookies["user_id"]];
   res.render("urls_logreq", templateVars); 
 });
+
+// *****All static gets are hear****
+app.get("/urls", (req, res) => {
+  const cookieId = req.cookies["user_id"];
+  
+  if (!cookieId) {
+    return res.redirect("/urls/req");
+  }
+
+  templateVars = {
+    urls: urlsForUser(cookieId, urlDatabase)
+  };
+
+  templateVars["user"] = users[cookieId];
+  res.render("urls_index", templateVars);
+});
+
+
+
+app.get("/register", (req, res) => {
+  templateVars["user"] = users[req.cookies["user_id"]];
+  res.render("register", templateVars)
+});
+
+app.get("/login", (req, res) => {
+  templateVars["user"] = users[req.cookies["user_id"]];
+  res.render("loginForm", templateVars)
+});
+
+app.get("/urls/new", (req, res) => {
+  // 
+  if (!users[req.cookies["user_id"]]) {
+    return res.redirect("/login");
+  }
+  templateVars["user"] = users[req.cookies["user_id"]];
+  res.render("urls_new", templateVars); 
+});
+
 
 // All the dynamic pages are here
 //edit button in creat new url page
