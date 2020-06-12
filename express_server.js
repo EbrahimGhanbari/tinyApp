@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const {generateRandomString, userFinder, urlsForUser} = require("./functions");
+const bcrypt = require('bcrypt');
 
 // Varaiables are deifined here
 const app = express();
@@ -20,20 +21,21 @@ const users = {
   "aJ48lW": {
     id: "aJ48lW", 
     email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
+    password: bcrypt.hashSync("purple-monkey-dinosaur", 10)
   },
  "user2RandomID": {
     id: "user2RandomID", 
     email: "user2@example.com", 
-    password: "funk"
+    password: bcrypt.hashSync("funk", 10)
   }
 }
+
+
+
 // middleware
 app.use(cookieParser());
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
-
-
 
 
 // ****All static post are hear *****
@@ -42,8 +44,9 @@ app.post("/register", (req, res) => {
   const id = generateRandomString();
   const email = req.body["email"];
   const pass = req.body["password"];
- 
-  if (!email && !pass) {
+  const hashedPassword = bcrypt.hashSync(pass, 10);
+
+  if (!email || !pass) {
     return res.status(400).send('Invalid email and/or passwords');
   }
 
@@ -54,7 +57,7 @@ app.post("/register", (req, res) => {
   users[id] = {
     id,
     email: email,
-    password: pass
+    password: hashedPassword
   };
   res.cookie('user_id', id);  
   res.redirect("/urls")
@@ -66,8 +69,9 @@ app.post("/login", (req, res) => {
   const email = req.body.email;
   const pass = req.body.password;
   const id = userFinder(email, users);
-  
-  if (id && pass === users[id].password) {
+  const passComparison = bcrypt.compareSync(pass, users[id].password);
+
+  if (id && passComparison) {
     res.clearCookie('user_id');
     res.cookie('user_id', id); 
     res.redirect("/urls");
