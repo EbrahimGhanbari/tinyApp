@@ -10,16 +10,6 @@ const generateRandomString = () => {
   return result;;
 };
 
-// this function find the user
-const userFinder = (email, users) => { 
-  for (let user in users) {
-    if (email === users[user].email) {
-      return user;
-    }
-  }
-  return false;
-}
-
 //this fun get the id and return database pertaining to that id
 const urlsForUser = (id, urlDatabase) => {
   const urlUserDatabse = {};
@@ -37,4 +27,6 @@ const urlsForUser = (id, urlDatabase) => {
   return urlUserDatabse;
 };
 
-module.exports = {generateRandomString, userFinder, urlsForUser};
+
+
+module.exports = {generateRandomString, urlsForUser};
