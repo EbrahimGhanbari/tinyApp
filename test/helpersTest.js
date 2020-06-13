@@ -1,8 +1,8 @@
-const { assert } = require('chai');
+const assert = require('chai').assert
 
 const getUserByEmail = require('../helpers.js');
 
-const testUsers = {
+const users = {
   "userRandomID": {
     id: "userRandomID", 
     email: "user@example.com", 
@@ -17,8 +17,13 @@ const testUsers = {
 
 describe('getUserByEmail', function() {
   it('should return a user with valid email', function() {
-    const user = getUserByEmail("user@example.com", users)
+    const user = getUserByEmail("user@example.com", users);
     const expectedOutput = "userRandomID";
-    // Write your assert statement here
+    assert.strictEqual(user, expectedOutput);
+  });
+  it('should return false', function() {
+    const user = getUserByEmail("emailnotexist@example.com", users);
+    const expectedOutput = false;
+    assert.strictEqual(user, expectedOutput);
   });
 });
