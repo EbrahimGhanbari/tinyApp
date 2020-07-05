@@ -1,7 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const {generateRandomString, urlsForUser} = require("./functions");
-const getUserByEmail = require("./helpers");
+const {generateRandomString, urlsForUser, getUserByEmail} = require("./functions");
 const bcrypt = require('bcrypt');
 const cookieSession = require('cookie-session');
 
@@ -99,10 +98,20 @@ app.post("/logout", (req, res) => {
 // this post handle adding new website
 app.post("/urls", (req, res) => {
   let key = generateRandomString();
-  urlDatabase[key] = {
-    longURL: `http://${req.body['longURL']}`,
-    userID: req.session.user_id
-  };
+
+  const foo = req.body['longURL'].search("http");
+  if(foo) {
+    urlDatabase[key] = {
+      longURL: `http://${req.body['longURL']}`,
+      userID: req.session.user_id
+    };
+  } else {
+    urlDatabase[key] = {
+      longURL: `${req.body['longURL']}`,
+      userID: req.session.user_id
+    };
+  }
+  
   res.redirect(`/urls/${key}`);
 });
 
